@@ -2,7 +2,9 @@
 #include<conio.h>
 #include<math.h>
 #include<iomanip>
+
 #define SIZE 10
+
 using namespace std;
 class matrix{
 	private:
@@ -25,6 +27,7 @@ class matrix{
 		void identity();
 		void symmtreic();
 };
+
 void matrix::eigen(){
 	float a[SIZE][SIZE], x[SIZE],x_new[SIZE];
 	 float temp, lambda_new, lambda_old, error;
@@ -448,90 +451,93 @@ cout<<"\n";
 
 
 
-    void matrix::accept()
+void matrix::accept()
+{
+    cout<<"Enter matrix order: ";
+    cin>>n;
+    for(int i=0;i<n;i++)
     {
-        cout<<"Enter matrix order: ";
-        cin>>n;
-        for(int i=0;i<n;i++)
+        for(int j=0;j<n+1;j++)
         {
-            for(int j=0;j<n+1;j++)
+            if(j==n)
+                cout<<"Constant no."<<i+1<<" = ";
+            else
+                cout<<"a["<<i<<"]["<<j<<"] = ";
+            cin>>mt[i][j];
+        }
+    }
+}
+
+void matrix::display()
+{
+    for(int i=0;i<n;i++)
+    {
+        cout<<"\n";
+        for(int j=0;j<n+1;j++)
+        {
+            if(j==n)
+                cout<<" ";
+            cout<<mt[i][j]<<"\t";
+        }
+    }
+}
+
+void matrix::gauss()//converting augmented matrix to row echelon form
+{
+    float temp;//Line 1
+    for(int i=0;i<n;i++)
+    {
+        for(int j=i+1;j<n;j++)
+        {
+            temp=mt[j][i]/mt[i][i];//Line 2
+            for(int k=i;k<n+1;k++)
             {
-                if(j==n)
-                    cout<<"Constant no."<<i+1<<" = ";
-                else
-                    cout<<"a["<<i<<"]["<<j<<"] = ";
-                cin>>mt[i][j];
+                    mt[j][k]-=temp*mt[i][k];//Line 3
+                //a[j][k]-=a[j][i]*a[i][k]/a[i][i];//Line 4
             }
         }
     }
-    void matrix::display()
+}
+
+void matrix::EnterJordan()//converting to reduced row echelon form
+{
+    float temp;
+    for(int i=n-1;i>=0;i--)
     {
-        for(int i=0;i<n;i++)
+
+        for(int j=i-1;j>=0;j--)
         {
-            cout<<"\n";
-            for(int j=0;j<n+1;j++)
+            temp=mt[j][i]/mt[i][i];
+            for(int k=n;k>=i;k--)
             {
-                if(j==n)
-                    cout<<" ";
-                cout<<mt[i][j]<<"\t";
+                mt[j][k]-=temp*mt[i][k];
             }
         }
     }
 
-    void matrix::gauss()//converting augmented matrix to row echelon form
+    float x[n];
+    for(int i=0;i<n;i++)//making leading coefficients zero
+        x[i]=0;
+    for(int i=0;i<n;i++)
     {
-        float temp;//Line 1
-        for(int i=0;i<n;i++)
+        for(int j=0;j<n+1;j++)
         {
-            for(int j=i+1;j<n;j++)
-            {
-                temp=mt[j][i]/mt[i][i];//Line 2
-                for(int k=i;k<n+1;k++)
-                {
-                      mt[j][k]-=temp*mt[i][k];//Line 3
-                    //a[j][k]-=a[j][i]*a[i][k]/a[i][i];//Line 4
-                }
-            }
+            if(x[i]==0&&j!=n)
+                x[i]=mt[i][j];
+            if(x[i]!=0)
+                mt[i][j]/=x[i];
         }
     }
+}
 
-	void matrix::EnterJordan()//converting to reduced row echelon form
-    {
-        float temp;
-        for(int i=n-1;i>=0;i--)
-        {
-
-            for(int j=i-1;j>=0;j--)
-            {
-                temp=mt[j][i]/mt[i][i];
-                for(int k=n;k>=i;k--)
-                {
-                    mt[j][k]-=temp*mt[i][k];
-                }
-            }
-        }
-
-        float x[n];
-        for(int i=0;i<n;i++)//making leading coefficients zero
-            x[i]=0;
-        for(int i=0;i<n;i++)
-        {
-            for(int j=0;j<n+1;j++)
-            {
-                if(x[i]==0&&j!=n)
-                    x[i]=mt[i][j];
-                if(x[i]!=0)
-                    mt[i][j]/=x[i];
-            }
-        }
-    }
-    void matrix::credits()
+void matrix::credits()
     {
         for(int i=0;i<n;i++)
         {
             cout<<"\nx"<<i+1<<" = "<<mt[i][n]<<endl;
         }
     }
+
 void matrix::identity(){
 	int i, j, m, n, flag = 0, A[10][10];
     cout << "Enter number of rows and columns : ";
@@ -570,6 +576,7 @@ void matrix::identity(){
         }
     }
 }
+
 void matrix::symmtreic(){
 	int A[10][10], i, j, m, n, x = 0, y = 0;
     cout << "Enter the number of rows and columns : ";
@@ -601,6 +608,8 @@ void matrix::symmtreic(){
             cout << "\n ";
         }
 }		
+
+
 int main()
 {
 	int choice;
