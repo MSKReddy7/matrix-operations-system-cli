@@ -1,36 +1,44 @@
 {
   "matrices": [
-    {"name": "matrix new", "rows": 3, "cols": 3, "values": [
-      [1, 1, 1],
-      [2, 2, 2],
-      [3, 3, 3]
+    {"name": "mat1", "rows": 2, "cols": 2, "values": [
+      [1, 2],
+      [3, 4]
     ]},
-    {"name": "matrix 1", "rows": 2, "cols": 2, "values": [
-      [1, 1],
-      [1, 1]
+    {"name": "Default 1/1", "rows": 1, "cols": 1, "values": [
+      [61]
     ]},
-    {"name": "matrix 2", "rows": 3, "cols": 3, "values": [
-      [1, 2, 3],
-      [1, 2, 3],
-      [1, 2, 3]
+    {"name": "Default 1/2", "rows": 1, "cols": 2, "values": [
+      [70, 40]
     ]},
-    {"name": "Result 4", "rows": 3, "cols": 3, "values": [
-      [0, -1, -2],
-      [1, 0, -1],
-      [2, 1, 0]
+    {"name": "Default 1/3", "rows": 1, "cols": 3, "values": [
+      [3, 23, 61]
     ]},
-    {"name": "mat", "rows": 2, "cols": 3, "values": [
-      [1, 2, 3],
-      [4, 5, 6]
+    {"name": "Default 2/1", "rows": 2, "cols": 1, "values": [
+      [99],
+      [96]
     ]},
-    {"name": "Result 6", "rows": 2, "cols": 3, "values": [
-      [1, 0, -1],
-      [0, 1, 2]
+    {"name": "Default 2/2", "rows": 2, "cols": 2, "values": [
+      [62, 45],
+      [37, 68]
     ]},
-    {"name": "res 7", "rows": 3, "cols": 1, "values": [
-      [1],
-      [1],
-      [1]
+    {"name": "Default 2/3", "rows": 2, "cols": 3, "values": [
+      [86, 58, 79],
+      [94, 100, 49]
+    ]},
+    {"name": "Default 3/1", "rows": 3, "cols": 1, "values": [
+      [99],
+      [36],
+      [22]
+    ]},
+    {"name": "Default 3/2", "rows": 3, "cols": 2, "values": [
+      [75, 37],
+      [74, 76],
+      [18, 13]
+    ]},
+    {"name": "Default 3/3", "rows": 3, "cols": 3, "values": [
+      [46, 44, 64],
+      [95, 68, 55],
+      [68, 38, 66]
     ]}
   ]
 }

@@ -7,6 +7,8 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
@@ -22,6 +24,48 @@ struct SavedMatrix
 };
 
 vector<SavedMatrix> savedMatrices;
+void saveMatricesToJson();
+
+void addDefaultMatrices()
+{
+    bool addedMatrix = false;
+    srand(static_cast<unsigned>(time(nullptr)));
+
+    for (int rows = 1; rows <= 3; rows++)
+    {
+        for (int cols = 1; cols <= 3; cols++)
+        {
+            string name = "Default " + to_string(rows) + "/" + to_string(cols);
+            bool alreadyExists = false;
+            for (const SavedMatrix &matrix : savedMatrices)
+            {
+                if (matrix.name == name)
+                {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+
+            if (alreadyExists)
+                continue;
+
+            SavedMatrix matrix;
+            matrix.name = name;
+            matrix.rows = rows;
+            matrix.cols = cols;
+            matrix.values.assign(rows, vector<float>(cols));
+            for (int row = 0; row < rows; row++)
+                for (int col = 0; col < cols; col++)
+                    matrix.values[row][col] = 1 + rand() % 100;
+
+            savedMatrices.push_back(matrix);
+            addedMatrix = true;
+        }
+    }
+
+    if (addedMatrix)
+        saveMatricesToJson();
+}
 
 void saveMatricesToJson()
 {
@@ -288,6 +332,21 @@ void presentAndSaveResult(const string &title, const vector<vector<float>> &valu
     }
 
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    string saveChoice;
+    while (true)
+    {
+        cout << "\nDo you want to save this result? (y/n): ";
+        getline(cin, saveChoice);
+        if (saveChoice == "n" || saveChoice == "N")
+        {
+            cout << "Result was not saved.\n";
+            return;
+        }
+        if (saveChoice == "y" || saveChoice == "Y")
+            break;
+        cout << "Please enter y for yes or n for no.\n";
+    }
+
     string defaultName = nextResultName();
     cout << "\nEnter a name to save this result (press Enter for " << defaultName << "): ";
     getline(cin, result.name);
@@ -995,6 +1054,7 @@ int main()
     int choice;
     matrix mt;
     loadMatricesFromJson();
+    addDefaultMatrices();
 
     while (true)
     {
