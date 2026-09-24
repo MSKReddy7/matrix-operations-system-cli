@@ -1,15 +1,5 @@
-#include <iostream>
+#include <bits/stdc++.h>
 #include <conio.h>
-#include <math.h>
-#include <iomanip>
-#include <string>
-#include <fstream>
-#include <vector>
-#include <limits>
-#include <algorithm>
-#include <cstdlib>
-#include <ctime>
-
 using namespace std;
 
 #define SIZE 10
@@ -24,7 +14,31 @@ struct SavedMatrix
 };
 
 vector<SavedMatrix> savedMatrices;
-void saveMatricesToJson();
+
+void saveMatricesToJson()
+{
+    ofstream file(MATRIX_FILE);
+    file << "{\n  \"matrices\": [\n";
+    for (size_t index = 0; index < savedMatrices.size(); index++)
+    {
+        const SavedMatrix &matrix = savedMatrices[index];
+        file << "    {\"name\": \"" << matrix.name << "\", \"rows\": "
+             << matrix.rows << ", \"cols\": " << matrix.cols << ", \"values\": [\n";
+        for (int row = 0; row < matrix.rows; row++)
+        {
+            file << "      [";
+            for (int col = 0; col < matrix.cols; col++)
+            {
+                if (col > 0)
+                    file << ", ";
+                file << matrix.values[row][col];
+            }
+            file << "]" << (row + 1 < matrix.rows ? "," : "") << "\n";
+        }
+        file << "    ]}" << (index + 1 < savedMatrices.size() ? "," : "") << "\n";
+    }
+    file << "  ]\n}\n";
+}
 
 void addDefaultMatrices()
 {
@@ -65,31 +79,6 @@ void addDefaultMatrices()
 
     if (addedMatrix)
         saveMatricesToJson();
-}
-
-void saveMatricesToJson()
-{
-    ofstream file(MATRIX_FILE);
-    file << "{\n  \"matrices\": [\n";
-    for (size_t index = 0; index < savedMatrices.size(); index++)
-    {
-        const SavedMatrix &matrix = savedMatrices[index];
-        file << "    {\"name\": \"" << matrix.name << "\", \"rows\": "
-             << matrix.rows << ", \"cols\": " << matrix.cols << ", \"values\": [\n";
-        for (int row = 0; row < matrix.rows; row++)
-        {
-            file << "      [";
-            for (int col = 0; col < matrix.cols; col++)
-            {
-                if (col > 0)
-                    file << ", ";
-                file << matrix.values[row][col];
-            }
-            file << "]" << (row + 1 < matrix.rows ? "," : "") << "\n";
-        }
-        file << "    ]}" << (index + 1 < savedMatrices.size() ? "," : "") << "\n";
-    }
-    file << "  ]\n}\n";
 }
 
 void loadMatricesFromJson()
@@ -358,8 +347,83 @@ void presentAndSaveResult(const string &title, const vector<vector<float>> &valu
     cout << "Result saved as \"" << result.name << "\".\n";
 }
 
-void printBoxTitle(const string &title);
-void printOperationRules(int choice);
+void printBoxTitle(const string &title)
+{
+    const int width = 60;
+    cout << '\n';
+    cout << string(width, '=') << '\n';
+    cout << setw((width + title.length()) / 2) << title << '\n';
+    cout << string(width, '=') << '\n';
+}
+
+void printOperationRules(int choice)
+{
+    cout << "\nRULES / REQUIREMENTS\n";
+    switch (choice)
+    {
+    case 2:
+        cout << "- Select two saved matrices.\n"
+             << "- Both matrices must have the same rows and columns.\n";
+        break;
+    case 3:
+        cout << "- Select two saved matrices.\n"
+             << "- Columns of the first matrix (C1) must equal rows of the second matrix (R2).\n"
+             << "- Result size is rows of the first matrix x columns of the second matrix.\n";
+        break;
+    case 4:
+        cout << "- Select two saved matrices.\n"
+             << "- Both matrices must have the same rows and columns.\n";
+        break;
+    case 5:
+        cout << "- Select one saved matrix.\n"
+             << "- Enter a numeric scalar value.\n";
+        break;
+    case 6:
+        cout << "- Select one saved matrix.\n"
+             << "- No square-matrix condition is required.\n"
+             << "- Rows and columns are exchanged in the result.\n";
+        break;
+    case 7:
+        cout << "- Select one saved matrix.\n"
+             << "- The matrix must be 2 x 2 or 3 x 3.\n";
+        break;
+    case 8:
+        cout << "- Select one saved 3 x 3 matrix.\n"
+             << "- Its determinant must not be zero.\n";
+        break;
+    case 9:
+        cout << "- Select one saved square matrix.\n"
+             << "- Symmetric: A[i][j] = A[j][i].\n"
+             << "- Skew-symmetric: A[i][j] = -A[j][i].\n";
+        break;
+    case 10:
+        cout << "- Select one saved square matrix.\n"
+             << "- Diagonal values must be 1.\n"
+             << "- All non-diagonal values must be 0.\n";
+        break;
+    case 11:
+        cout << "- Select one saved augmented matrix.\n"
+             << "- Columns must equal rows + 1.\n"
+             << "- The final column contains the constants.\n";
+        break;
+    case 12:
+        cout << "- Select one saved square matrix.\n"
+             << "- The calculation uses the power method.\n"
+             << "- It estimates the dominant eigenvalue and eigenvector.\n";
+        break;
+    case 13:
+        cout << "- Matrix names cannot be empty.\n"
+             << "- Rows and columns must be between 1 and 10.\n"
+             << "- Enter numeric values for every element.\n";
+        break;
+    case 14:
+        cout << "- Select a saved matrix to view its values.\n"
+             << "- You can edit its name, dimensions, and values.\n"
+             << "- Changes are saved to matrices.json.\n";
+        break;
+    }
+    cout << '\n';
+}
 
 void editSavedMatrix(SavedMatrix &matrix)
 {
@@ -707,33 +771,25 @@ void matrix::multplication()
 void matrix::s_matrix()
 {
     SavedMatrix first;
-    if (!chooseMatrix("", first))
+    if (!chooseMatrix("for scalar multiplication", first))
         return;
 
+    cout << "\nSelected matrix:\n";
     printSavedMatrix(first);
-    int k, choiceMatrix;
+    float scalar;
     cout << "\nEnter scalar value: ";
-    while (!(cin >> k))
+    while (!(cin >> scalar))
     {
         cout << "Please enter a numeric scalar value: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
-    if (!readMenuInteger("\nPress 1 to multiply the selected matrix: ", choiceMatrix))
-        return;
 
-    if (choiceMatrix == 1)
-    {
-        vector<vector<float>> result(first.rows, vector<float>(first.cols));
-        for (row = 0; row < first.rows; row++)
-            for (col = 0; col < first.cols; col++)
-                result[row][col] = k * first.values[row][col];
-        presentAndSaveResult("SCALAR MULTIPLICATION RESULT", result);
-    }
-    else
-    {
-        cout << "\nInvalid matrix selection.";
-    }
+    vector<vector<float>> result(first.rows, vector<float>(first.cols));
+    for (row = 0; row < first.rows; row++)
+        for (col = 0; col < first.cols; col++)
+            result[row][col] = scalar * first.values[row][col];
+    presentAndSaveResult("SCALAR MULTIPLICATION RESULT", result);
 }
 
 void matrix::Transpose()
@@ -970,15 +1026,6 @@ void matrix::symmtreic()
         cout << "The matrix is neither symmetric nor skew-symmetric.\n";
 }
 
-void printBoxTitle(const string &title)
-{
-    const int width = 60;
-    cout << '\n';
-    cout << string(width, '=') << '\n';
-    cout << setw((width + title.length()) / 2) << title << '\n';
-    cout << string(width, '=') << '\n';
-}
-
 void printMenu()
 {
     cout << '\n';
@@ -1000,75 +1047,6 @@ void printMenu()
          << left << setw(6) << "" << setw(36) << "14. See / Edit / Delete saved matrices" << '\n'
          << '\n';
     cout << "   Enter your choice: ";
-}
-
-void printOperationRules(int choice)
-{
-    cout << "\nRULES / REQUIREMENTS\n";
-    switch (choice)
-    {
-    case 2:
-        cout << "- Select two saved matrices.\n"
-             << "- Both matrices must have the same rows and columns.\n";
-        break;
-    case 3:
-        cout << "- Select two saved matrices.\n"
-             << "- Columns of the first matrix (C1) must equal rows of the second matrix (R2).\n"
-             << "- Result size is rows of the first matrix x columns of the second matrix.\n";
-        break;
-    case 4:
-        cout << "- Select two saved matrices.\n"
-             << "- Both matrices must have the same rows and columns.\n";
-        break;
-    case 5:
-        cout << "- Select one saved matrix.\n"
-             << "- Enter a numeric scalar value.\n";
-        break;
-    case 6:
-        cout << "- Select one saved matrix.\n"
-             << "- No square-matrix condition is required.\n"
-             << "- Rows and columns are exchanged in the result.\n";
-        break;
-    case 7:
-        cout << "- Select one saved matrix.\n"
-             << "- The matrix must be 2 x 2 or 3 x 3.\n";
-        break;
-    case 8:
-        cout << "- Select one saved 3 x 3 matrix.\n"
-             << "- Its determinant must not be zero.\n";
-        break;
-    case 9:
-        cout << "- Select one saved square matrix.\n"
-             << "- Symmetric: A[i][j] = A[j][i].\n"
-             << "- Skew-symmetric: A[i][j] = -A[j][i].\n";
-        break;
-    case 10:
-        cout << "- Select one saved square matrix.\n"
-             << "- Diagonal values must be 1.\n"
-             << "- All non-diagonal values must be 0.\n";
-        break;
-    case 11:
-        cout << "- Select one saved augmented matrix.\n"
-             << "- Columns must equal rows + 1.\n"
-             << "- The final column contains the constants.\n";
-        break;
-    case 12:
-        cout << "- Select one saved square matrix.\n"
-             << "- The calculation uses the power method.\n"
-             << "- It estimates the dominant eigenvalue and eigenvector.\n";
-        break;
-    case 13:
-        cout << "- Matrix names cannot be empty.\n"
-             << "- Rows and columns must be between 1 and 10.\n"
-             << "- Enter numeric values for every element.\n";
-        break;
-    case 14:
-        cout << "- Select a saved matrix to view its values.\n"
-             << "- You can edit its name, dimensions, and values.\n"
-             << "- Changes are saved to matrices.json.\n";
-        break;
-    }
-    cout << '\n';
 }
 
 int main()
