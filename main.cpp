@@ -76,7 +76,7 @@ void loadMatricesFromJson()
             matrix.rows = stoi(content.substr(rowsPosition + string("\"rows\": ").length()));
             matrix.cols = stoi(content.substr(colsPosition + string("\"cols\": ").length()));
         }
-        catch (const invalid_argument &)
+        catch (const exception &)
         {
             position = nameEnd + 1;
             continue;
@@ -90,21 +90,57 @@ void loadMatricesFromJson()
 
         matrix.values.assign(matrix.rows, vector<float>(matrix.cols));
 
-        size_t valuePosition = content.find('[', valuesPosition + string("\"values\": [").length()) + 1;
+        size_t firstRowPosition = content.find('[', valuesPosition + string("\"values\": [").length());
+        if (firstRowPosition == string::npos)
+        {
+            position = nameEnd + 1;
+            continue;
+        }
+
+        size_t valuePosition = firstRowPosition + 1;
+        bool validMatrix = true;
         for (int row = 0; row < matrix.rows; row++)
         {
             for (int col = 0; col < matrix.cols; col++)
             {
                 while (valuePosition < content.size() && (content[valuePosition] == ' ' || content[valuePosition] == ',' || content[valuePosition] == '\n'))
                     valuePosition++;
+                if (valuePosition >= content.size() || content[valuePosition] == ']')
+                {
+                    validMatrix = false;
+                    break;
+                }
                 size_t valueEnd = valuePosition;
                 while (valueEnd < content.size() && content[valueEnd] != ',' && content[valueEnd] != ']')
                     valueEnd++;
-                matrix.values[row][col] = stof(content.substr(valuePosition, valueEnd - valuePosition));
+                try
+                {
+                    matrix.values[row][col] = stof(content.substr(valuePosition, valueEnd - valuePosition));
+                }
+                catch (const exception &)
+                {
+                    validMatrix = false;
+                    break;
+                }
                 valuePosition = valueEnd;
             }
+            if (!validMatrix)
+                break;
             if (row + 1 < matrix.rows)
-                valuePosition = content.find('[', valuePosition) + 1;
+            {
+                size_t nextRowPosition = content.find('[', valuePosition);
+                if (nextRowPosition == string::npos)
+                {
+                    validMatrix = false;
+                    break;
+                }
+                valuePosition = nextRowPosition + 1;
+            }
+        }
+        if (!validMatrix)
+        {
+            position = nameEnd + 1;
+            continue;
         }
         savedMatrices.push_back(matrix);
         size_t matrixEnd = content.find("]}", valuePosition);
@@ -214,6 +250,27 @@ void printSavedMatrix(const SavedMatrix &matrix)
     }
 }
 
+string nextResultName()
+{
+    int resultNumber = 1;
+    while (true)
+    {
+        string candidate = "Result " + to_string(resultNumber);
+        bool alreadyUsed = false;
+        for (const SavedMatrix &matrix : savedMatrices)
+        {
+            if (matrix.name == candidate)
+            {
+                alreadyUsed = true;
+                break;
+            }
+        }
+        if (!alreadyUsed)
+            return candidate;
+        resultNumber++;
+    }
+}
+
 void presentAndSaveResult(const string &title, const vector<vector<float>> &values)
 {
     SavedMatrix result;
@@ -231,11 +288,11 @@ void presentAndSaveResult(const string &title, const vector<vector<float>> &valu
     }
 
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    cout << "\nEnter a name to save this result (press Enter for Result "
-         << savedMatrices.size() + 1 << "): ";
+    string defaultName = nextResultName();
+    cout << "\nEnter a name to save this result (press Enter for " << defaultName << "): ";
     getline(cin, result.name);
     if (result.name.empty())
-        result.name = "Result " + to_string(savedMatrices.size() + 1);
+        result.name = defaultName;
 
     savedMatrices.push_back(result);
     saveMatricesToJson();
@@ -391,7 +448,7 @@ bool canAddSubtract(int r1, int c1, int r2, int c2)
     return (r1 == r2) && (c1 == c2);
 }
 
-bool canMultiply(int r1, int c1, int r2, int c2)
+bool canMultiply(int c1, int r2)
 {
     return (c1 == r2);
 }
@@ -474,9 +531,19 @@ void matrix::addition()
 
     int x, y;
     cout << "\nEnter multiplication value for 1st matrix\nvalue = ";
-    cin >> x;
+    while (!(cin >> x))
+    {
+        cout << "Please enter a numeric value for the 1st matrix: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
     cout << "\nEnter multiplication value for 2nd matrix\nvalue = ";
-    cin >> y;
+    while (!(cin >> y))
+    {
+        cout << "Please enter a numeric value for the 2nd matrix: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
 
     vector<vector<float>> result(i, vector<float>(j));
     for (row = 0; row < i; row++)
@@ -507,9 +574,19 @@ void matrix::subtraction()
 
     int x, y;
     cout << "\nEnter multiplication value for 1st matrix\nvalue = ";
-    cin >> x;
+    while (!(cin >> x))
+    {
+        cout << "Please enter a numeric value for the 1st matrix: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
     cout << "\nEnter multiplication value for 2nd matrix\nvalue = ";
-    cin >> y;
+    while (!(cin >> y))
+    {
+        cout << "Please enter a numeric value for the 2nd matrix: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
 
     vector<vector<float>> result(i, vector<float>(j));
     for (row = 0; row < i; row++)
@@ -529,7 +606,7 @@ void matrix::multplication()
     m = second.rows;
     n = second.cols;
 
-    if (!canMultiply(i, j, m, n))
+    if (!canMultiply(j, m))
     {
         cout << "\nMATRIX CANNOT BE MULTIPLIED (column of 1st matrix must equal row of 2nd matrix)";
         return;
@@ -695,6 +772,11 @@ void matrix::gauss() // converting augmented matrix to row echelon form
     float temp; // Line 1
     for (int i = 0; i < n; i++)
     {
+        if (fabs(mt[i][i]) < 0.000001f)
+        {
+            cout << "\nThe solver cannot continue because a zero pivot was found.\n";
+            return;
+        }
         for (int j = i + 1; j < n; j++)
         {
             temp = mt[j][i] / mt[i][i]; // Line 2
@@ -712,6 +794,11 @@ void matrix::EnterJordan() // converting to reduced row echelon form
     float temp;
     for (int i = n - 1; i >= 0; i--)
     {
+        if (fabs(mt[i][i]) < 0.000001f)
+        {
+            cout << "\nThe reduced echelon step cannot continue because a zero pivot was found.\n";
+            return;
+        }
 
         for (int j = i - 1; j >= 0; j--)
         {
@@ -723,7 +810,7 @@ void matrix::EnterJordan() // converting to reduced row echelon form
         }
     }
 
-    float x[n];
+    vector<float> x(n, 0);
     for (int i = 0; i < n; i++) // making leading coefficients zero
         x[i] = 0;
     for (int i = 0; i < n; i++)
