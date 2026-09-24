@@ -448,14 +448,14 @@ void viewSavedMatrix()
         }
 
         system("cls");
-        printBoxTitle("VIEW / EDIT MATRIX");
+        printBoxTitle("VIEW / EDIT / DELETE MATRIX");
         printSavedMatrix(savedMatrices[matrixIndex]);
 
-        int editChoice;
-        if (!readMenuInteger("\n1. Edit this matrix\n2. Return to matrix list\n\nSelect an option: ", editChoice))
+        int matrixChoice;
+        if (!readMenuInteger("\n1. Edit this matrix\n2. Delete this matrix\n3. Return to matrix list\n\nSelect an option: ", matrixChoice))
             continue;
 
-        if (editChoice == 1)
+        if (matrixChoice == 1)
         {
             system("cls");
             printBoxTitle("EDIT MATRIX");
@@ -464,7 +464,29 @@ void viewSavedMatrix()
             cout << "\nPress any key to return to the matrix list...";
             getch();
         }
-        else if (editChoice == 2)
+        else if (matrixChoice == 2)
+        {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            string deleteChoice;
+            while (true)
+            {
+                cout << "\nDelete \"" << savedMatrices[matrixIndex].name << "\" permanently? (y/n): ";
+                getline(cin, deleteChoice);
+                if (deleteChoice == "y" || deleteChoice == "Y")
+                {
+                    string deletedName = savedMatrices[matrixIndex].name;
+                    savedMatrices.erase(savedMatrices.begin() + matrixIndex);
+                    saveMatricesToJson();
+                    cout << "\nMatrix \"" << deletedName << "\" deleted.\n";
+                    getch();
+                    break;
+                }
+                if (deleteChoice == "n" || deleteChoice == "N")
+                    break;
+                cout << "Please enter y for yes or n for no.\n";
+            }
+        }
+        else if (matrixChoice == 3)
         {
             continue;
         }
@@ -975,7 +997,7 @@ void printMenu()
     cout << left << setw(6) << "" << setw(36) << "11. Echelon / reduced echelon" << '\n';
     cout << left << setw(6) << "" << setw(36) << "12. Eigen value and vector" << '\n'
          << left << setw(6) << "" << setw(36) << "13. Create and save matrix" << '\n'
-         << left << setw(6) << "" << setw(36) << "14. See / Edit saved matrices" << '\n'
+         << left << setw(6) << "" << setw(36) << "14. See / Edit / Delete saved matrices" << '\n'
          << '\n';
     cout << "   Enter your choice: ";
 }
